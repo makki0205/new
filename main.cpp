@@ -32,9 +32,10 @@
 /* 戻り値		:                   :               :                          */
 /* 作成日		:                                                              */
 /* -------------------------------------------------------------------------- */
-int main ( int argc, char const *argv[] )
+int main ( int argc, char *argv[] )
 {
     FILE         *fp;
+    int           flg    = 0;
     int           index  = 0;
     int           keybaf = 0;
     int           page   = 1;
@@ -47,11 +48,24 @@ int main ( int argc, char const *argv[] )
     char          inputbaf[4];
     memset( &project[0][0], 0, sizeof( project ));
     memset( &inputbaf[0], 0, sizeof( inputbaf ));
-    system( "ls ~/Desktop/backup > ./ls.txt" );
+    if( argc >= 2 ) {
+        index = strcmp( argv[1], "-f" );
+        if( index == 0 ) {
+            system( "ls ~/Desktop/backup/files > ./ls.txt" );
+            flg = 1;
+        } else {
+            printf( "new: '%s' is not a new command.\n", argv[1] );
+
+            return -1;
+        }
+    } else {
+        system( "ls ~/Desktop/backup/projects > ./ls.txt" );
+    }
     fp = fopen( "./ls.txt", "r" );
     if( fp == 0 ) {
         printf( "オープンエラー" );
-		system("rm -f ./ls.txt");
+        system( "rm -f ./ls.txt" );
+
         return -1;
     }
     fseek( fp, 0, SEEK_END );
@@ -59,8 +73,8 @@ int main ( int argc, char const *argv[] )
     fseek( fp, 0, SEEK_SET );
     fread( &baf[0], size, 1, fp );
     baf[size - 1] = '\0';
-	fclose(fp);
-	system("rm -f ./ls.txt");
+    fclose( fp );
+    system( "rm -f ./ls.txt" );
     for( int i = 0 ; i < size ; i++ ) {
         if( baf[i] != '\n' ) {
             project[page][moji] = baf[i];
@@ -78,15 +92,23 @@ int main ( int argc, char const *argv[] )
     inval = atoi( &inputbaf[0] );
     if( inval == 0 || inval > page ) {
         printf( "不正な文字が含まれています" );
+
         return -1;
     }
-    strcpy( name, "cp -r ~/Desktop/backup/" );
-    strcpy( &name[23], &project[inval][0] );
-    size         = strlen( &name[0] );
-    name[size++] = ' ';
-    rewind( stdin );
-    printf( "project Name\n→" );
-    scanf( "%s", &name[size] );
+    if( flg == 0 ) {
+        strcpy( name, "cp -r ~/Desktop/backup/projects/" );
+        strcpy( &name[strlen( &name[0] )], &project[inval][0] );
+        size         = strlen( &name[0] );
+        name[size++] = ' ';
+        rewind( stdin );
+        printf( "project Name\n→" );
+        scanf( "%s", &name[size] );
+    } else {
+        strcpy( name, "cp -r ~/Desktop/backup/files/" );
+        strcpy( &name[strlen( &name[0] )], &project[inval][0] );
+        strcpy( &name[strlen( &name[0] )], " " );
+        strcpy( &name[strlen( &name[0] )], &project[inval][0] );
+    }
     printf( "%s\n", name );
     system( &name[0] );
 
